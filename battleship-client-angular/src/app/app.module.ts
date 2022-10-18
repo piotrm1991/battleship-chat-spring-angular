@@ -10,6 +10,7 @@ import { BoardUserComponent } from './board-user/board-user.component';
 import { httpInterceptorProviders } from './_helpers/http.interceptor';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
+import { ChatGlobalComponent } from './chat-global/chat-global.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { HttpClientModule } from '@angular/common/http';
     LoginComponent,
     RegisterComponent,
     ProfileComponent,
-    BoardUserComponent
+    BoardUserComponent,
+    ChatGlobalComponent
   ],
   imports: [
     BrowserModule,

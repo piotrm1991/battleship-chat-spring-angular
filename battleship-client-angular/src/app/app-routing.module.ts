@@ -5,12 +5,14 @@ import { RegisterComponent } from './register/register.component';
 import { LoginComponent } from './login/login.component';
 import { ProfileComponent } from './profile/profile.component';
 import { BoardUserComponent } from './board-user/board-user.component';
+import { ChatGlobalComponent } from './chat-global/chat-global.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'user', component: BoardUserComponent },
+  { path: 'global-chat', component: ChatGlobalComponent },
   { path: '', redirectTo: 'login', pathMatch: 'full' }
 ];
 

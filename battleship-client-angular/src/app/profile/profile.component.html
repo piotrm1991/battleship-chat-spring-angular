@@ -4,12 +4,6 @@
         <strong>{{ currentUser.username }}</strong> Profile
       </h3>
     </header>
-    <strong>Roles:</strong>
-    <ul>
-      <li *ngFor="let role of currentUser.roles">
-        {{ role }}
-      </li>
-    </ul>
   </div>
   
   <ng-template #loggedOut>
