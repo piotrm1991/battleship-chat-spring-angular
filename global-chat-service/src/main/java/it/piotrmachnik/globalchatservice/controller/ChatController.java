@@ -1,6 +1,6 @@
-package it.piotrmachnik.gameroomservicespringwebsockets.controller;
+package it.piotrmachnik.globalchatservice.controller;
 
-import it.piotrmachnik.gameroomservicespringwebsockets.model.ChatMessage;
+import it.piotrmachnik.globalchatservice.model.ChatMessage;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -18,7 +18,6 @@ public class ChatController {
     @MessageMapping("/chat.send")
     @SendTo("/topic/public")
     public ChatMessage sendMessage(@Payload final ChatMessage chatMessage) {
-        System.out.println("Got message: " + chatMessage.getContent());
         return chatMessage;
     }
 
@@ -26,7 +25,6 @@ public class ChatController {
     @SendTo("/topic/public")
     public ChatMessage newUser(@Payload final ChatMessage chatMessage, SimpMessageHeaderAccessor headerAccessor) {
         headerAccessor.getSessionAttributes().put("username", chatMessage.getSender());
-        chatMessage.setContent(chatMessage.getSender() + " joins the fight!");
         return chatMessage;
     }
 }

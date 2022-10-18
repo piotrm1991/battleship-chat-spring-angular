@@ -1,4 +1,4 @@
-package it.piotrmachnik.gameroomservicespringwebsockets.model;
+package it.piotrmachnik.globalchatservice.model;
 
 import lombok.Builder;
 import lombok.Getter;

@@ -1,7 +1,7 @@
-package it.piotrmachnik.gameroomservicespringwebsockets.controller;
+package it.piotrmachnik.globalchatservice.controller;
 
-import it.piotrmachnik.gameroomservicespringwebsockets.model.ChatMessage;
-import it.piotrmachnik.gameroomservicespringwebsockets.model.MessageType;
+import it.piotrmachnik.globalchatservice.model.ChatMessage;
+import it.piotrmachnik.globalchatservice.model.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,6 @@ public class WebsocketEventListener {
         final StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         final String username = (String) headerAccessor.getSessionAttributes().get("username");
         final ChatMessage chatMessage = ChatMessage.builder().type(MessageType.DISCONNECT).sender(username).build();
-        System.out.println("Disconnect: " + username);
         sendingOperations.convertAndSend("/topic/public", chatMessage);
     }
 }

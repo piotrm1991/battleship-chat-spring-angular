@@ -35,11 +35,24 @@ export class ChatGlobalComponent implements OnInit, OnDestroy {
   connect(currentUser) {
     const _this = this;
     this.stompClient.connect({}, (frame) => {
-      
       this.onConnected(frame, currentUser);
     }, (frame) => {
       this.onError(frame);
     });
+  }
+
+  sendMessage(sendForm: NgForm) {
+    const content = sendForm.value.message;
+    this.stompClient.send(
+      '/app/chat.send',
+      {},
+      JSON.stringify({sender: this.currentUser.username, content: content, type: 'CHAT', time: moment().format('MMMM Do YYYY, h:mm:ss a')})
+    );
+    sendForm.control.reset();
+  }
+
+  private onError(frame) {
+    console.log("CONNECTION ERROR: " + frame);
   }
 
   private onConnected(frame: any, currentUser: any) {
@@ -80,10 +93,7 @@ export class ChatGlobalComponent implements OnInit, OnDestroy {
       messageElement.classList.add('event-message');
       message.content = message.sender + ' left!';
     } else if (message.type === 'CHAT') {
-      console.log('CHAT ' + message.content);
-
       messageElement.classList.add('chat-message');
-
 
       const avatarContainer = document.createElement('div');
       avatarContainer.className = 'img_cont_msg';
@@ -91,10 +101,10 @@ export class ChatGlobalComponent implements OnInit, OnDestroy {
       avatarElement.className = 'circle user_img_msg';
       const avatarText = document.createTextNode(message.sender[0]);
       avatarElement.appendChild(avatarText);
-      avatarElement.style['background-color'] = this.getAvatarColor(message.sender);
+      avatarElement.style['background-color'] = getAvatarColor(message.sender);
       avatarContainer.appendChild(avatarElement);
 
-      messageElement.style['background-color'] = this.getAvatarColor(message.sender);
+      messageElement.style['background-color'] = getAvatarColor(message.sender);
 
       flexBox.appendChild(avatarContainer);
 
@@ -102,46 +112,36 @@ export class ChatGlobalComponent implements OnInit, OnDestroy {
       time.className = 'msg_time_send';
       time.innerHTML = message.time;
       messageElement.appendChild(time);
-      
+
+      const sender = document.createElement('span');
+      sender.className = 'msg_sender_send';
+      sender.innerHTML = message.sender;
+      messageElement.appendChild(sender);
     }
 
     const messageTextContainer = document.createElement('span');
     messageTextContainer.innerHTML = message.content;
     messageElement.appendChild(messageTextContainer);
     
-
     const chat = document.querySelector('#chat');
     chat.appendChild(flexBox);
     chat.scrollTop = chat.scrollHeight;
   }
-
-  private getAvatarColor(sender) {
-    const colours = ['#2196F3', '#32c787', '#1BC6B4', '#A1B4C4']
-    const index = Math.abs(hashCode(sender) % colours.length)
-    return colours[index]
-  }
-
-  sendMessage(sendForm: NgForm) {
-    const content = sendForm.value.message;
-    this.stompClient.send(
-      '/app/chat.send',
-      {},
-      JSON.stringify({sender: this.currentUser.username, content: content, type: 'CHAT', time: moment().format('MMMM Do YYYY, h:mm:ss a')})
-    );
-    sendForm.control.reset();
-  }
-
-  private onError(frame) {
-    console.log("CONNECTION ERROR: " + frame);
-  }
 }
 
 function hashCode(str) {
-  let hash = 0
+  let hash = 0;
     for (let i = 0; i < str.length; i++) {
-       hash = str.charCodeAt(i) + ((hash << 5) - hash)
+       hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return hash
+    return hash;
+}
+
+function getAvatarColor(sender) {
+  const colours = ['#2196F3', '#32c787', '#1BC6B4', '#A1B4C4', '#a6070d', '#0e01e3', '#0493a4', '#dee83f'];
+  const index = Math.abs(hashCode(sender) % colours.length);
+
+  return colours[index];
 }
 
 

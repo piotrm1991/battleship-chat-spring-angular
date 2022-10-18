@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>it.piotrmachnik</groupId>
-	<artifactId>game-room-service-spring-websockets</artifactId>
+	<artifactId>global-chat-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>game-room-service-spring-websockets</name>
-	<description>Game Room Service</description>
+	<name>global-chat-service</name>
+	<description>Global Chat Service</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>

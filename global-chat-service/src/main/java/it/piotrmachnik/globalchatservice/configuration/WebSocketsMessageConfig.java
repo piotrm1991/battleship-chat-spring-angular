@@ -1,4 +1,4 @@
-package it.piotrmachnik.gameroomservicespringwebsockets.configuration;
+package it.piotrmachnik.globalchatservice.configuration;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
