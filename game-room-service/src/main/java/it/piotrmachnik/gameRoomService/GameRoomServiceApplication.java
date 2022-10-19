@@ -1,13 +1,13 @@
-package it.piotrmachnik.privatechatservice;
+package it.piotrmachnik.gameRoomService;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PrivateChatServiceApplication {
+public class GameRoomServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(PrivateChatServiceApplication.class, args);
+		SpringApplication.run(GameRoomServiceApplication.class, args);
 	}
 
 }

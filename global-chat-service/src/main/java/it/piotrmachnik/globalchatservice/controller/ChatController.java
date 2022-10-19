@@ -12,9 +12,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @CrossOrigin(origins = "http://localhost:8081/")
 public class ChatController {
 
-//    @Autowired
-//    private ChatService chatService;
-
     @MessageMapping("/chat.send")
     @SendTo("/topic/public")
     public ChatMessage sendMessage(@Payload final ChatMessage chatMessage) {

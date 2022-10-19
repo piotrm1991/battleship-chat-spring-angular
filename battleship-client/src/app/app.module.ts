@@ -11,6 +11,8 @@ import { httpInterceptorProviders } from './_helpers/http.interceptor';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ChatGlobalComponent } from './chat-global/chat-global.component';
+import { LobbyComponent } from './lobby/lobby.component';
+import { NotfoundComponent } from './notfound/notfound.component';
 
 @NgModule({
   declarations: [
@@ -19,7 +21,9 @@ import { ChatGlobalComponent } from './chat-global/chat-global.component';
     RegisterComponent,
     ProfileComponent,
     BoardUserComponent,
-    ChatGlobalComponent
+    ChatGlobalComponent,
+    LobbyComponent,
+    NotfoundComponent
   ],
   imports: [
     BrowserModule,

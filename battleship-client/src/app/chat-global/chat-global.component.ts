@@ -5,10 +5,11 @@ import { WebSocketService } from '../_services/websocket.service';
 
 import { NgForm } from '@angular/forms';
 import * as moment from 'moment';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-chat-global',
-  encapsulation: ViewEncapsulation.None,
+  // encapsulation: ViewEncapsulation.None,
   templateUrl: './chat-global.component.html',
   styleUrls: ['./chat-global.component.css']
 })
@@ -20,16 +21,26 @@ export class ChatGlobalComponent implements OnInit, OnDestroy {
 
   private stompClient: any;
 
-  constructor(private storageService: StorageService, private websocketService: WebSocketService){ }
+  constructor(private storageService: StorageService, 
+              private websocketService: WebSocketService, 
+              private router: Router){ 
+                if (!this.storageService.isLoggedIn()) {
+                  router.navigate(['']);
+                }
+              }
 
   ngOnInit() {
-    this.currentUser = this.storageService.getUser();
-    this.stompClient = this.websocketService.prepareStompClientGlobalChat();
-    this.connect(this.currentUser);
+    if (this.storageService.isLoggedIn()) {
+      this.currentUser = this.storageService.getUser();
+      this.stompClient = this.websocketService.prepareStompClientGlobalChat();
+      this.connect(this.currentUser);
+    }
   }
   
   ngOnDestroy(): void {
-    this.stompClient.disconnect();
+    if (this.storageService.isLoggedIn()) {
+      this.stompClient.disconnect();
+    }
   }
 
   connect(currentUser) {

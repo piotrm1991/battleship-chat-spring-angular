@@ -6,6 +6,8 @@ import { LoginComponent } from './login/login.component';
 import { ProfileComponent } from './profile/profile.component';
 import { BoardUserComponent } from './board-user/board-user.component';
 import { ChatGlobalComponent } from './chat-global/chat-global.component';
+import { LobbyComponent } from './lobby/lobby.component';
+import { NotfoundComponent } from './notfound/notfound.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -13,8 +15,10 @@ const routes: Routes = [
   { path: 'profile', component: ProfileComponent },
   { path: 'user', component: BoardUserComponent },
   { path: 'global-chat', component: ChatGlobalComponent },
-  { path: '', redirectTo: 'login', pathMatch: 'full' }
-];
+  { path: 'lobby', component: LobbyComponent },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '**', component: NotfoundComponent }
+]
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],

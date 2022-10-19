@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { StorageService } from '../_services/storage.service';
 import { UserService } from '../_services/user.service';
 
 @Component({
@@ -9,7 +11,13 @@ import { UserService } from '../_services/user.service';
 export class BoardUserComponent implements OnInit {
   content?: string;
 
-  constructor(private userService: UserService) { }
+  constructor(private userService: UserService, 
+              private storageService: StorageService,
+              private router: Router) { 
+    if (!storageService.isLoggedIn()) {
+      router.navigate(['']);
+    }
+  }
 
   ngOnInit(): void {
     this.userService.getUserBoard().subscribe({

@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>it.piotrmachnik</groupId>
-	<artifactId>private-chat-service</artifactId>
+	<artifactId>game-room-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>private-chat-service</name>
-	<description>Private Chat Service</description>
+	<name>game-room-service</name>
+	<description>Game Room Service For Battleship Game</description>
 	<properties>
 		<java.version>17</java.version>
 	</properties>
@@ -40,7 +40,11 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>
