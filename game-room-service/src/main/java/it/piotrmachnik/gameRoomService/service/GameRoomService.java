@@ -27,10 +27,6 @@ public class GameRoomService {
         return this.gameRoomRepository.findByOnPlay(false);
     }
 
-    public GameRoom initNewGameRoom(String senderId) {
-        return this.gameRoomRepository.save(GameRoom.builder().playerOneId(senderId).onPlay(false).build());
-    }
-
     public GameRoomResponse getGameRoom(String userId) {
 
         if (gameRoomRepository.findByPlayerOneId(userId).isPresent()) {
