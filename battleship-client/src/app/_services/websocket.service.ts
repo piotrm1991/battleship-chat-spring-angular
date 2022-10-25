@@ -22,4 +22,10 @@ export class WebSocketService {
     const stompClient = Stomp.over(socket);
     return stompClient;
   }
+
+  prepareStompClientGame(): any {
+    const socket = new SockJS(URI_LOBBY);
+    const stompClient = Stomp.over(socket);
+    return stompClient;
+  }
 }

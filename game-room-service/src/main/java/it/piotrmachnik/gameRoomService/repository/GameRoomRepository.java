@@ -8,5 +8,5 @@ import java.util.Optional;
 public interface GameRoomRepository extends MongoRepository<GameRoom, String> {
     Optional<GameRoom> findByPlayerOneId(String userId);
     Optional<GameRoom> findByPlayerTwoId(String userId);
-    Optional<GameRoom> findByOnPlay(Boolean flag);
+    Optional<GameRoom> findByRoomFull(Boolean flag);
 }

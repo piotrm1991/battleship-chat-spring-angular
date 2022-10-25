@@ -1,35 +1,5 @@
-<div class="container">
-    <header class="jumbotron">
-        <span id="headerInfo"></span>
-    </header>
-    <div id="chat-page" class="main">
-        <div class="row justify-content-center h-100">
-            <div class="col-md-8 col-xl-6">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex bd-highlight">
-                            <div class="chat-summary">
-                                <span>Game Room Chat</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-
-                        <div id="chat">
-
-                        </div>
-
-                    </div>
-                    <form (ngSubmit)="sendMessage(sendForm)" #sendForm="ngForm" class="card-footer">
-                        <div class="input-group">
-                            <textarea id="input-message" name="message" class="form-control all-input" placeholder="Type your message..." ngModel></textarea>
-                            <div class="input-group-append">
-                                <button class="fas fa-location-arrow" type="submit"></button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- <header class="jumbotron">
+    <span id="headerInfo">Info</span>
+</header> -->
+<app-chat-private></app-chat-private>
+<app-battleship-game></app-battleship-game>

@@ -5,17 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Builder
+@Getter
 public class ChatMessage {
-    @Getter
     private MessageType type;
-    @Getter
     private String content;
-    @Getter
+    private String senderId;
     private String sender;
-    @Getter
     private String receiver;
-    @Getter
     private String gameRoomId;
-    @Getter
     private String time;
 }

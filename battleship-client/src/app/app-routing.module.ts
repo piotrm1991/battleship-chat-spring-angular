@@ -8,6 +8,7 @@ import { BoardUserComponent } from './board-user/board-user.component';
 import { ChatGlobalComponent } from './chat-global/chat-global.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { NotfoundComponent } from './notfound/notfound.component';
+import { LogoutComponent } from './logout/logout.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
@@ -16,6 +17,7 @@ const routes: Routes = [
   { path: 'user', component: BoardUserComponent },
   { path: 'global-chat', component: ChatGlobalComponent },
   { path: 'lobby', component: LobbyComponent },
+  { path: 'logout', component: LogoutComponent },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', component: NotfoundComponent }
 ]

@@ -33,12 +33,13 @@ export class AppComponent {
       next: res => {
         console.log(res);
         this.storageService.clean();
-        // this.router.navigate(['login']);
-        window.location.reload();
+        // this.router.navigate(['logout']);
+        // window.location.reload();
       },
       error: err => {
         console.log(err);
       }
     });
+    console.log(this.storageService.isLoggedIn());
   }
 }

@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 @Controller
 public class ChatController {
@@ -22,7 +22,8 @@ public class ChatController {
     }
 
     @MessageMapping("/chat.newPlayer/{gameRoomId}")
-    public void newPlayerPrivateChat(@Payload final ChatMessage chatMessage, @DestinationVariable String gameRoomId) {
+    public void newPlayerPrivateChat(@Payload final ChatMessage chatMessage, @DestinationVariable String gameRoomId, SimpMessageHeaderAccessor headerAccessor) {
+        headerAccessor.getSessionAttributes().put("playerId", chatMessage.getSenderId());
         this.simpMessagingTemplate.convertAndSend("/topic/private/chat/" + gameRoomId, chatMessage);
     }
 }

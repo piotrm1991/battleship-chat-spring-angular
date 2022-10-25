@@ -6,8 +6,6 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.validation.constraints.NotBlank;
-
 @Document(collection = "gameRoom")
 @Builder
 @Getter
@@ -16,35 +14,35 @@ public class GameRoom {
 
     @Id
     private String id;
-
-    @NotBlank
-    private String chatRoomId;
-
-    @NotBlank
     private String playerOneId;
-
-    @NotBlank
     private String playerTwoId;
-
-    @NotBlank
-    private boolean onlinePlayerOne;
-
-    @NotBlank
-    private boolean onlinePlayerTwo;
-
-    @NotBlank
+    private boolean roomFull;
     private boolean onPlay;
+    private TurnStatus currentTurn;
+    private boolean pause;
+    private boolean gameOver;
 
-    public GameRoom(String id, String chatRoomId, String playerOneId, String playerTwoId, boolean onlinePlayerOne, boolean onlinePlayerTwo, boolean onPlay) {
-        this.id = id;
-        this.chatRoomId = chatRoomId;
-        this.playerOneId = playerOneId;
-        this.playerTwoId = playerTwoId;
-        this.onlinePlayerOne = onlinePlayerOne;
-        this.onlinePlayerTwo = onlinePlayerTwo;
-        this.onPlay = onPlay;
+    public String getCurrentTurnPlayerId() {
+        if (this.currentTurn.equals(TurnStatus.PLAYER_ONE)) {
+            return this.playerOneId;
+        } else {
+            return this.playerTwoId;
+        }
     }
 
-    public GameRoom() {
+    public String getWaitingPlayer() {
+        if (this.currentTurn.equals(TurnStatus.PLAYER_ONE)) {
+            return this.playerTwoId;
+        } else {
+            return this.playerOneId;
+        }
+    }
+
+    public void goToNextTurn() {
+        if (this.currentTurn.equals(TurnStatus.PLAYER_ONE)) {
+            this.setCurrentTurn(TurnStatus.PLAYER_TWO);
+        } else {
+            this.setCurrentTurn(TurnStatus.PLAYER_ONE);
+        }
     }
 }

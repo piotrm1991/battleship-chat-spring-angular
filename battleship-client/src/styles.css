@@ -1,14 +1,14 @@
-@import "~bootstrap/dist/css/bootstrap.css";
-
+ @import "~bootstrap/dist/css/bootstrap.css";
+ 
 body,html {
     margin: 0;
-    background-color: rgba(40, 42, 54, 1) !important;
+    background-color: rgba(40, 42, 54, 1); 
 }
 
 .card {
     height: 500px;
-    border-radius: 15px !important;
-    background-color: rgba(0,0,0,0.4) !important;
+    border-radius: 15px;
+    background-color: rgba(0,0,0,0.4);
 }
 
 .card-body {
@@ -16,13 +16,13 @@ body,html {
 }
 
 .card-header {
-    border-radius: 15px 15px 0 0 !important;
-    border-bottom: 0 !important;
+    border-radius: 15px 15px 0 0;
+    border-bottom: 0;
 }
 
 .card-footer {
-    border-radius: 0 0 15px 15px !important;
-    border-top: 0 !important;
+    border-radius: 0 0 15px 15px;
+    border-top: 0;
 }
 
 .user_img {
@@ -98,10 +98,10 @@ body,html {
 }
 
 button {
-    background-color: rgba(0,0,0,0.3) !important;
-    border:0 !important;
-    color:white !important;
-    border-radius: 0 5px 5px 0 !important;
+    background-color: rgba(0,0,0,0.3);
+    border:0;
+    color:white;
+    border-radius: 0 5px 5px 0;
 }
 
 .hide {
@@ -126,4 +126,4 @@ button {
   vertical-align: middle;
   margin:3px;
   border:1.5px solid #f5f6fa;
-}
+} 

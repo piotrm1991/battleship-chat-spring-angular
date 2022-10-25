@@ -1,8 +1,12 @@
 package it.piotrmachnik.gameRoomService.controller;
 
-import it.piotrmachnik.gameRoomService.model.lobby.LobbyMessage;
+import it.piotrmachnik.gameRoomService.model.gameRoom.GameMessage;
+import it.piotrmachnik.gameRoomService.model.gameRoom.GameRoom;
+import it.piotrmachnik.gameRoomService.model.gameRoom.player.Player;
+import it.piotrmachnik.gameRoomService.model.gameRoom.player.PlayerOnlineStatusType;
 import it.piotrmachnik.gameRoomService.model.MessageType;
 import it.piotrmachnik.gameRoomService.service.GameRoomService;
+import it.piotrmachnik.gameRoomService.service.PlayerService;
 import it.piotrmachnik.gameRoomService.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +27,13 @@ public class WebsocketEventListener {
     private SimpMessageSendingOperations sendingOperations;
 
     @Autowired
-    GameRoomService gameRoomService;
+    private GameRoomService gameRoomService;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
+
+    @Autowired
+    private PlayerService playerService;
 
     @EventListener
     public void handleWebSocketConnectListener(final SessionConnectedEvent event) {
@@ -37,10 +44,26 @@ public class WebsocketEventListener {
     public void handleSocketDisconnectListener(final SessionDisconnectEvent event) {
         final StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
         final String playerId = (String) headerAccessor.getSessionAttributes().get("playerId");
-        String player = this.userService.getPlayerName(playerId);
-        final LobbyMessage lobbyMessage = LobbyMessage.builder().type(MessageType.DISCONNECT).sender(player).senderId(playerId).build();
-        String gameRoomId = this.gameRoomService.handleDisconnectFromGame(playerId);
-        sendingOperations.convertAndSend("/topic/public", lobbyMessage);
-        sendingOperations.convertAndSend("/topic/private/chat/"+gameRoomId, lobbyMessage);
+//        String player = this.userService.getPlayerName(playerId);
+//        final LobbyMessage lobbyMessage = LobbyMessage.builder().type(MessageType.DISCONNECT).sender(player).senderId(playerId).build();
+//        GameRoom gameRoom = this.gameRoomService.handleDisconnectFromGame(playerId);
+//        sendingOperations.convertAndSend("/topic/public", lobbyMessage);
+//        sendingOperations.convertAndSend("/topic/private/chat/"+gameRoomId, lobbyMessage);
+        if (playerId != null) {
+            Player disconnectedPlayer = this.playerService.disconnectPlayer(playerId);
+            GameRoom gameRoom = this.gameRoomService.getGameRoomById(disconnectedPlayer.getGameRoomId());
+            if (gameRoom.isRoomFull()) {
+                Player enemyPlayer = this.playerService.gerPlayerById((disconnectedPlayer.getId().equals(gameRoom.getPlayerOneId()) ? gameRoom.getPlayerTwoId() : gameRoom.getPlayerOneId()));
+                if (enemyPlayer.getPlayerOnlineStatus().equals(PlayerOnlineStatusType.ONLINE)) {
+                    GameMessage message = GameMessage.builder()
+                            .type(MessageType.DISCONNECT)
+                            .currentPlayer(enemyPlayer.getId())
+                            .enemyPlayerOnlineStatus(disconnectedPlayer.getPlayerOnlineStatus())
+                            .build();
+                    sendingOperations.convertAndSend("/topic/private/game/" + enemyPlayer.getId(), message);
+                }
+            }
+            this.gameRoomService.checkIfRoomEmptyAndHandleIt(disconnectedPlayer);
+        }
     }
 }

@@ -5,13 +5,10 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Builder
+@Getter
 public class LobbyMessage {
-    @Getter
     private MessageType type;
-    @Getter
     private String senderId;
-    @Getter
     private String sender;
-    @Getter
     private String gameRoomId;
 }

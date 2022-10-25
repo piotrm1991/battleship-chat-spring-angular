@@ -1,83 +1,68 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-
-import { StorageService } from '../_services/storage.service';
-import { WebSocketService } from '../_services/websocket.service';
-
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import * as moment from 'moment';
-import { Router } from '@angular/router';
+import { StorageService } from '../_services/storage.service';
+import { UserService } from '../_services/user.service';
+import { WebSocketService } from '../_services/websocket.service';
 
 @Component({
-  selector: 'app-chat-global',
-  templateUrl: './chat-global.component.html',
-  styleUrls: ['./chat-global.component.css']
+  selector: 'app-chat-private',
+  templateUrl: './chat-private.component.html',
+  styleUrls: ['./chat-private.component.css']
 })
-export class ChatGlobalComponent implements OnInit, OnDestroy {
-
-  public content: any;
+export class ChatPrivateComponent implements OnInit, OnDestroy {
 
   private currentUser: any;
 
   private stompClient: any;
 
-  constructor(private storageService: StorageService, 
-              private websocketService: WebSocketService, 
-              private router: Router){ 
-                if (!this.storageService.isLoggedIn()) {
-                  router.navigate(['']);
-                }
-              }
+  private gameRoomId: String;
 
-  ngOnInit() {
+  constructor(private userService: UserService, 
+    private storageService: StorageService, 
+    private websocketService: WebSocketService) { }
+
+  ngOnDestroy(): void {
+    // this.stompClient.disconnect();
+  }
+
+  ngOnInit(): void {
     if (this.storageService.isLoggedIn()) {
       this.currentUser = this.storageService.getUser();
-      this.stompClient = this.websocketService.prepareStompClientGlobalChat();
-      this.connect(this.currentUser);
-    }
-  }
-  
-  ngOnDestroy(): void {
-    if (this.storageService.isLoggedIn()) {
-      this.stompClient.disconnect();
+      this.stompClient = this.websocketService.prepareStompClientLobby();
+      this.gameRoomId = "";
     }
   }
 
-  connect(currentUser) {
-    const _this = this;
-    this.stompClient.connect({}, (frame) => {
-      this.onConnected(frame, currentUser);
-    }, (frame) => {
-      this.onError(frame);
+  public onSubscribeToChat(stompClient, gameRoomId) {
+    this.stompClient = stompClient;
+    this.gameRoomId = gameRoomId;
+    this.stompClient.subscribe('/topic/private/chat/' + this.gameRoomId, (payload) => {
+      this.onMessageRecivedChat(payload);
     });
+    this.stompClient.send(
+      '/app/chat.newPlayer/' + this.gameRoomId,
+      {},
+      JSON.stringify({
+        senderId: this.currentUser.id, 
+        sender: this.currentUser.username, 
+        type: 'CONNECT', 
+        gameRoomId: this.gameRoomId
+      })
+    );
   }
 
   sendMessage(sendForm: NgForm) {
     const content = sendForm.value.message;
     this.stompClient.send(
-      '/app/chat.send',
+      '/app/chat.send/' + this.gameRoomId,
       {},
       JSON.stringify({sender: this.currentUser.username, content: content, type: 'CHAT', time: moment().format('MMMM Do YYYY, h:mm:ss a')})
     );
     sendForm.control.reset();
   }
 
-  private onError(frame) {
-    console.log("CONNECTION ERROR: " + frame);
-  }
-
-  private onConnected(frame: any, currentUser: any) {
-    console.log('Connected: ' + frame);
-    this.stompClient.subscribe('/topic/public', (payload) => {
-      this.onMessageRecived(payload);
-    });
-    this.stompClient.send(
-      '/app/chat.newUser',
-      {},
-      JSON.stringify({sender: currentUser.username, type: 'CONNECT'})
-    );
-  }
-
-  private onMessageRecived(payload) {
+  private onMessageRecivedChat(payload) {
     const message = JSON.parse(payload.body);
 
     const chatCard = document.createElement('div');
@@ -93,15 +78,14 @@ export class ChatGlobalComponent implements OnInit, OnDestroy {
     flexBox.appendChild(messageElement);
 
     if (message.type === 'CONNECT') {
-      console.log('CONNECT ' + message.sender);
 
-      messageElement.classList.add('event-message');
-      message.content = message.sender + ' connected!';
+      // messageElement.classList.add('event-message');
+      // message.content = message.sender + ' connected!';
     } else if (message.type === 'DISCONNECT') {
-      console.log('DISCONNECT ' + message.sender);
+    //   console.log('DISCONNECT ' + message.sender);
 
-      messageElement.classList.add('event-message');
-      message.content = message.sender + ' left!';
+    //   messageElement.classList.add('event-message');
+    //   message.content = message.sender + ' left!';
     } else if (message.type === 'CHAT') {
       messageElement.classList.add('chat-message');
 
@@ -153,5 +137,3 @@ function getAvatarColor(sender) {
 
   return colours[index];
 }
-
-

@@ -17,4 +17,8 @@ public class UserService {
             return "";
         }
     }
+
+    public String getUserName(String id) {
+        return this.userRepository.findById(id).get().getUsername();
+    }
 }

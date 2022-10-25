@@ -13,6 +13,9 @@ import { HttpClientModule } from '@angular/common/http';
 import { ChatGlobalComponent } from './chat-global/chat-global.component';
 import { LobbyComponent } from './lobby/lobby.component';
 import { NotfoundComponent } from './notfound/notfound.component';
+import { ChatPrivateComponent } from './chat-private/chat-private.component';
+import { BattleshipGameComponent } from './battleship-game/battleship-game.component';
+import { LogoutComponent } from './logout/logout.component';
 
 @NgModule({
   declarations: [
@@ -23,7 +26,10 @@ import { NotfoundComponent } from './notfound/notfound.component';
     BoardUserComponent,
     ChatGlobalComponent,
     LobbyComponent,
-    NotfoundComponent
+    NotfoundComponent,
+    ChatPrivateComponent,
+    BattleshipGameComponent,
+    LogoutComponent
   ],
   imports: [
     BrowserModule,
