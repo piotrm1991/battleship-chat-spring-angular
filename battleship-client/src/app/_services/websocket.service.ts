@@ -4,7 +4,7 @@ import * as SockJS from 'sockjs-client';
 import * as Stomp from 'stompjs';
 
 const URI_GLOBAL_CHAT = "http://localhost:8081/chat-global";
-const URI_LOBBY = "http://localhost:8083/lobby";
+const URI_LOBBY = "http://localhost:8082/lobby";
 
 @Injectable({
   providedIn: 'root'
