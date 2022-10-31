@@ -2,14 +2,6 @@ import { AfterViewInit, Component, OnDestroy, OnInit, ViewEncapsulation, Rendere
 import { StorageService } from '../_services/storage.service';
 import { UserService } from '../_services/user.service';
 
-// For Battleship Game
-// let isHorizontal = true;
-let shotFired = -1;
-
-// let isGameOver = false;
-
-// const enemyGrid;
-
 @Component({
   selector: 'app-battleship-game',
   templateUrl: './battleship-game.component.html',
@@ -53,7 +45,6 @@ export class BattleshipGameComponent implements OnInit, OnDestroy, AfterViewInit
 
   ngOnInit(): void {
     this.currentUser = this.storageService.getUser();
-    // this.singlePlayerTest();
     this.width = 10;
     // this.userSquares = [];
     // this.enemySquares = [];
@@ -117,7 +108,6 @@ export class BattleshipGameComponent implements OnInit, OnDestroy, AfterViewInit
 
   private createBoard(grid, squares) {
     for (let i = 0; i < this.width * this.width; i++) {
-      // const square = document.createElement('div');
       const square: HTMLParagraphElement = this.renderer.createElement('div');
       square.dataset['id'] = i.toString(); 
       grid.appendChild(square);
@@ -200,7 +190,7 @@ export class BattleshipGameComponent implements OnInit, OnDestroy, AfterViewInit
       document.querySelector('#enemyPlayer .connected').classList.remove('active');
     }
     if (message.type === 'NOT_READY' && message.currentPlayerId === this.currentUser.id) {
-      document.querySelector('#info').innerHTML = message.content;
+      this.infoDisplay.innerHTML = message.content;
     }
     if (message.type === 'READY' && message.currentPlayerId === this.currentUser.id && message.currentPlayerGameStatus === 'READY') {
       document.querySelector('#currentPlayer .ready').classList.add('active');
@@ -210,12 +200,12 @@ export class BattleshipGameComponent implements OnInit, OnDestroy, AfterViewInit
       document.querySelector('#enemyPlayer .ready').classList.add('active');
     }
     if (message.type === 'YOUR_TURN' && message.currentPlayerId === this.currentUser.id) {
-      document.querySelector('#info').innerHTML = 'FIGHT!';
+      this.infoDisplay.innerHTML = 'FIGHT!';
       document.querySelector('#whose-go').innerHTML = message.content;
       this.yourTurn = true;
     }
     if (message.type === 'ENEMY_TURN' && message.currentPlayerId === this.currentUser.id) {
-      document.querySelector('#info').innerHTML = 'Game Started';
+      this.infoDisplay.innerHTML = 'FIGHT!';
       document.querySelector('#whose-go').innerHTML = message.content;
     }
     if (message.type === 'AFTER_FIRE' && message.currentPlayerId === this.currentUser.id) {
@@ -230,7 +220,7 @@ export class BattleshipGameComponent implements OnInit, OnDestroy, AfterViewInit
     if (message.type === 'GAME_OVER' && message.currentPlayerId === this.currentUser.id) {
       document.querySelector('#destruction-info').innerHTML = message.content;
       document.querySelector('#whose-go').innerHTML = "";
-      document.querySelector('#info').innerHTML = 'Game OVER';
+      this.infoDisplay.innerHTML = 'Game OVER';
       this.yourTurn = false;
     }
   }

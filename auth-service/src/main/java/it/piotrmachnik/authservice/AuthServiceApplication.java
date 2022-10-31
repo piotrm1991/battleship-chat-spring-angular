@@ -32,8 +32,10 @@ public class AuthServiceApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		Role role = new Role(ERole.ROLE_USER);
-		this.roleRepository.save(role);
+		if (!this.roleRepository.findByName(ERole.ROLE_USER).isPresent()) {
+			Role role = new Role(ERole.ROLE_USER);
+			this.roleRepository.save(role);
+		}
 
 		//for testing
 		User user = new User("test", encoder.encode("test123"));

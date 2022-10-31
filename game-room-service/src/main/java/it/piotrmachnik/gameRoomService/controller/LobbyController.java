@@ -23,7 +23,8 @@ public class LobbyController {
     @MessageMapping("/lobby.newPlayer")
     public void newPlayer(@Payload final LobbyMessage lobbyMessage, SimpMessageHeaderAccessor headerAccessor) {
         headerAccessor.getSessionAttributes().put("playerId", lobbyMessage.getSenderId());
-        Player player = this.playerService.getPlayerByUserId(lobbyMessage.getSenderId());
+        Player player = this.playerService.setPlayerOnlineOrInitNewPlayer(lobbyMessage.getSenderId());
+        player = this.playerService.savePlayer(player);
 
         LobbyMessage message = LobbyMessage.builder()
                 .type(MessageType.CONNECT)

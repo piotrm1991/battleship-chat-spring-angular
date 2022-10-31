@@ -2,10 +2,7 @@ package it.piotrmachnik.gameRoomService.service;
 
 import it.piotrmachnik.gameRoomService.model.gameRoom.GameRoom;
 import it.piotrmachnik.gameRoomService.model.gameRoom.TurnStatus;
-import it.piotrmachnik.gameRoomService.model.gameRoom.player.Fire;
-import it.piotrmachnik.gameRoomService.model.gameRoom.player.Player;
-import it.piotrmachnik.gameRoomService.model.gameRoom.player.PlayerGameStatusType;
-import it.piotrmachnik.gameRoomService.model.gameRoom.player.PlayerOnlineStatusType;
+import it.piotrmachnik.gameRoomService.model.gameRoom.player.*;
 import it.piotrmachnik.gameRoomService.model.gameRoom.player.ship.Placement;
 import it.piotrmachnik.gameRoomService.model.gameRoom.player.ship.Ship;
 import it.piotrmachnik.gameRoomService.model.gameRoom.player.ship.ShipMessage;
@@ -17,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -30,17 +26,29 @@ public class GameRoomService {
     @Autowired
     private PlayerRepository playerRepository;
 
-    public Optional<GameRoom> getByPlayerId(String userId) {
-        if (gameRoomRepository.findByPlayerOneId(userId).isPresent()) {
-            return gameRoomRepository.findByPlayerOneId(userId);
-        } else {
-            return gameRoomRepository.findByPlayerTwoId(userId);
-        }
+    @Autowired
+    private PlayerService playerService;
+
+    public GameRoomService(final GameRoomRepository gameRoomRepository, final PlayerRepository playerRepository, final PlayerService playerService) {
+        this.gameRoomRepository = gameRoomRepository;
+        this.playerRepository = playerRepository;
+        this.playerService = playerService;
     }
 
-    public Optional<GameRoom> getEmptyGameRoom() {
-        return this.gameRoomRepository.findByRoomFull(false);
+    public GameRoomService() {
     }
+
+//    public Optional<GameRoom> getByPlayerId(String userId) {
+//        if (gameRoomRepository.findByPlayerOneId(userId).isPresent()) {
+//            return gameRoomRepository.findByPlayerOneId(userId);
+//        } else {
+//            return gameRoomRepository.findByPlayerTwoId(userId);
+//        }
+//    }
+//
+//    public Optional<GameRoom> getEmptyGameRoom() {
+//        return this.gameRoomRepository.findByRoomFull(false);
+//    }
 
 
     public GameRoom getGameRoomOfCurrentPlayer(String currentPlayerId) {
@@ -52,9 +60,8 @@ public class GameRoomService {
             GameRoom gameRoom = this.gameRoomRepository.findByRoomFull(false).get();
             gameRoom.setPlayerTwoId(currentPlayerId);
             gameRoom.setRoomFull(true);
-            Player player = this.playerRepository.findById(currentPlayerId).get();
-            player.setGameRoomId(gameRoom.getId());
-            this.playerRepository.save(player);
+            Player player = this.playerService.setGameRoomIdForPlayer(currentPlayerId, gameRoom.getId());
+            this.playerService.savePlayer(player);
             return this.gameRoomRepository.save(gameRoom);
         } else {
             GameRoom gameRoom = GameRoom.builder()
@@ -64,26 +71,27 @@ public class GameRoomService {
                     .gameOver(false)
                     .build();
             gameRoom = this.gameRoomRepository.save(gameRoom);
-            Player player = this.playerRepository.findById(currentPlayerId).get();
-            player.setGameRoomId(gameRoom.getId());
-            this.playerRepository.save(player);
+            Player player = this.playerService.setGameRoomIdForPlayer(currentPlayerId, gameRoom.getId());
+            this.playerService.savePlayer(player);
             return gameRoom;
         }
     }
 
     public void checkIfRoomEmptyAndHandleIt(Player disconnectedPlayer) {
-        GameRoom gameRoom = this.getGameRoomById(disconnectedPlayer.getGameRoomId());
-        if (gameRoom.isRoomFull()) {
-            Player playerOne = this.playerRepository.findById(gameRoom.getPlayerOneId()).get();
-            Player playerTwo = this.playerRepository.findById(gameRoom.getPlayerTwoId()).get();
-            if (playerOne.getPlayerOnlineStatus().equals(PlayerOnlineStatusType.OFFLINE) && playerTwo.getPlayerOnlineStatus().equals(PlayerOnlineStatusType.OFFLINE)) {
-                this.playerRepository.delete(playerOne);
-                this.playerRepository.delete(playerTwo);
+        if (this.gameRoomRepository.findById(disconnectedPlayer.getGameRoomId()).isPresent()) {
+            GameRoom gameRoom = this.gameRoomRepository.findById(disconnectedPlayer.getGameRoomId()).get();
+            if (gameRoom.isRoomFull()) {
+                Player playerOne = this.playerService.getPlayerById(gameRoom.getPlayerOneId());
+                Player playerTwo = this.playerService.getPlayerById(gameRoom.getPlayerTwoId());
+                if (playerOne.getPlayerOnlineStatus().equals(PlayerOnlineStatusType.OFFLINE) && playerTwo.getPlayerOnlineStatus().equals(PlayerOnlineStatusType.OFFLINE)) {
+                    this.playerService.deletePlayer(playerOne);
+                    this.playerService.deletePlayer(playerTwo);
+                    this.gameRoomRepository.delete(gameRoom);
+                }
+            } else {
+                this.playerService.deletePlayer(disconnectedPlayer);
                 this.gameRoomRepository.delete(gameRoom);
             }
-        } else {
-            this.playerRepository.delete(disconnectedPlayer);
-            this.gameRoomRepository.delete(gameRoom);
         }
     }
 
@@ -109,10 +117,10 @@ public class GameRoomService {
                     .build();
             ships.add(ship);
         });
-        Player player = this.playerRepository.findById(playerId).get();
+        Player player = this.playerService.getPlayerById(playerId);
         player.setPlayerShips(ships);
         player.setPlayerGameStatus(PlayerGameStatusType.READY);
-        return this.playerRepository.save(player);
+        return this.playerService.savePlayer(player);
     }
 
     public GameRoom startGameNextTurn(GameRoom gameRoom) {
@@ -136,10 +144,10 @@ public class GameRoomService {
         return this.gameRoomRepository.save(gameRoom);
     }
 
-    public boolean checkIfMissAndRecord(String currentPlayerId, String targetFire) {
-        Player currentPlayer = this.playerRepository.findById(currentPlayerId).get();
+    public boolean checkIfMissOrHitAndRecord(String currentPlayerId, String targetFire) {
+        Player currentPlayer = this.playerService.getPlayerById(currentPlayerId);
         GameRoom gameRoom = this.gameRoomRepository.findById(currentPlayer.getGameRoomId()).get();
-        Player enemyPlayer = this.playerRepository.findById(gameRoom.getWaitingPlayer()).get();
+        Player enemyPlayer = this.playerService.getPlayerById(gameRoom.getWaitingPlayer());
         AtomicBoolean fireFlag = new AtomicBoolean(false);
         enemyPlayer.getPlayerShips().forEach(ship -> {
             ship.getPlacement().forEach(placement -> {
@@ -149,17 +157,19 @@ public class GameRoomService {
                 }
             });
         });
-        this.playerRepository.save(enemyPlayer);
+        if (fireFlag.get()) {
+            this.playerService.savePlayer(enemyPlayer);
+        }
         currentPlayer.addFireRecord(Fire.builder()
                 .target(targetFire)
                 .damage(fireFlag.get())
                 .build());
-        this.playerRepository.save(currentPlayer);
+        this.playerService.savePlayer(currentPlayer);
         return fireFlag.get();
     }
 
-    public String getShipNameIfDestroyed(GameRoom gameRoom, String targetFire) {
-        Player enemyPlayer = this.playerRepository.findById(gameRoom.getWaitingPlayer()).get();
+    public String setShipFlagAndGetNameIfDestroyed(GameRoom gameRoom, String targetFire) {
+        Player enemyPlayer = this.playerService.getPlayerById(gameRoom.getWaitingPlayer());
         AtomicReference<String> shipName = new AtomicReference<>("");
         enemyPlayer.getPlayerShips().forEach(ship -> {
             AtomicBoolean flag = new AtomicBoolean(false);
@@ -181,15 +191,15 @@ public class GameRoomService {
             }
         });
         if (!shipName.get().equals("")) {
-            this.playerRepository.save(enemyPlayer);
+            this.playerService.savePlayer(enemyPlayer);
         }
         return shipName.get();
     }
 
     public boolean checkIfGameOver(String currentPlayerId) {
-        Player currentPlayer = this.playerRepository.findById(currentPlayerId).get();
+        Player currentPlayer = this.playerService.getPlayerById(currentPlayerId);
         GameRoom gameRoom = this.gameRoomRepository.findById(currentPlayer.getGameRoomId()).get();
-        Player enemyPlayer = this.playerRepository.findById(gameRoom.getWaitingPlayer()).get();
+        Player enemyPlayer = this.playerService.getPlayerById(gameRoom.getWaitingPlayer());
         AtomicBoolean flag = new AtomicBoolean(true);
         enemyPlayer.getPlayerShips().forEach(ship -> {
             if (ship.getStatus().equals(ShipStatusAndPosition.FUNCTIONAL)) {

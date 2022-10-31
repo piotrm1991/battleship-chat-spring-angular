@@ -7,11 +7,13 @@ import it.piotrmachnik.gameRoomService.model.gameRoom.player.PlayerOnlineStatusT
 import it.piotrmachnik.gameRoomService.model.gameRoom.player.ship.ShipMessage;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 @Builder
 @Getter
+@Setter
 public class GameMessage {
     private MessageType type;
     private String content;

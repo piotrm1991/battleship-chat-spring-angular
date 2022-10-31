@@ -50,10 +50,11 @@ public class WebsocketEventListener {
 //        sendingOperations.convertAndSend("/topic/public", lobbyMessage);
 //        sendingOperations.convertAndSend("/topic/private/chat/"+gameRoomId, lobbyMessage);
         if (playerId != null) {
-            Player disconnectedPlayer = this.playerService.disconnectPlayer(playerId);
+            Player disconnectedPlayer = this.playerService.setPlayerOffline(playerId);
+            this.playerService.savePlayer(disconnectedPlayer);
             GameRoom gameRoom = this.gameRoomService.getGameRoomById(disconnectedPlayer.getGameRoomId());
             if (gameRoom.isRoomFull()) {
-                Player enemyPlayer = this.playerService.gerPlayerById((disconnectedPlayer.getId().equals(gameRoom.getPlayerOneId()) ? gameRoom.getPlayerTwoId() : gameRoom.getPlayerOneId()));
+                Player enemyPlayer = this.playerService.getPlayerById((disconnectedPlayer.getId().equals(gameRoom.getPlayerOneId()) ? gameRoom.getPlayerTwoId() : gameRoom.getPlayerOneId()));
                 if (enemyPlayer.getPlayerOnlineStatus().equals(PlayerOnlineStatusType.ONLINE)) {
                     GameMessage message = GameMessage.builder()
                             .type(MessageType.DISCONNECT)

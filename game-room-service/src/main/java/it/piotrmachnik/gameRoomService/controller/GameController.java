@@ -35,193 +35,95 @@ public class GameController {
     @Autowired
     private PlayerService playerService;
 
+    private void sendMessages(GameRoom gameRoom, MessageType messageType, String targetFire, String destroyedShipName) {
+        Player currentPlayer = this.playerService.getPlayerById(gameRoom.getCurrentTurnPlayerId());
+        Player enemyPlayer = this.playerService.getPlayerById(gameRoom.getWaitingPlayer());
+        GameMessage messageCurrentPlayer = GameMessage.builder()
+                .currentPlayerId(currentPlayer.getId())
+                .build();
+        GameMessage messageEnemyPlayer = GameMessage.builder()
+                .currentPlayerId(enemyPlayer.getId())
+                .build();
+        switch (messageType) {
+            case AFTER_FIRE_HIT:
+                messageCurrentPlayer.setType(MessageType.AFTER_FIRE);
+                messageCurrentPlayer.setTargetFire(targetFire);
+                messageCurrentPlayer.setContent("boom");
+
+                messageEnemyPlayer.setType(MessageType.ENEMY_FIRE);
+                messageEnemyPlayer.setTargetFire(targetFire);
+                messageEnemyPlayer.setContent("boom");
+                break;
+            case DESTROYED_SHIP:
+                messageCurrentPlayer.setTargetFire(targetFire);
+                messageCurrentPlayer.setType(MessageType.DESTROYED_SHIP);
+                messageCurrentPlayer.setContent("You destroyed enemy's " + destroyedShipName.toUpperCase() + "!");
+
+                messageEnemyPlayer.setType(MessageType.DESTROYED_SHIP);
+                messageEnemyPlayer.setTargetFire(targetFire);
+                messageEnemyPlayer.setContent("Your " + destroyedShipName.toUpperCase() + " was destroyed!");
+                break;
+            case GAME_OVER:
+                messageCurrentPlayer.setType(MessageType.GAME_OVER);
+                messageCurrentPlayer.setContent("You have WON!");
+
+                messageEnemyPlayer.setType(MessageType.GAME_OVER);
+                messageEnemyPlayer.setContent("You have LOST!");
+                break;
+            case AFTER_FIRE_MISS:
+                messageCurrentPlayer.setType(MessageType.AFTER_FIRE);
+                messageCurrentPlayer.setTargetFire(targetFire);
+                messageCurrentPlayer.setContent("miss");
+
+                messageEnemyPlayer.setType(MessageType.ENEMY_FIRE);
+                messageEnemyPlayer.setTargetFire(targetFire);
+                messageEnemyPlayer.setContent("miss");
+                break;
+            case NEXT_TURN:
+                messageCurrentPlayer.setType(MessageType.YOUR_TURN);
+                messageCurrentPlayer.setContent("Your Turn!");
+
+                messageEnemyPlayer.setType(MessageType.ENEMY_TURN);
+                messageEnemyPlayer.setContent("Wait! Enemy's turn...");
+                break;
+        }
+
+        this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageCurrentPlayer);
+        this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageEnemyPlayer);
+    }
+
     @MessageMapping("/game.shootingTarget/{playerId}")
     public void shootingTarget(@Payload final GameMessage gameMessage, @DestinationVariable String playerId) {
-        Player currentPlayer = this.playerService.gerPlayerById(playerId);
+        Player currentPlayer = this.playerService.getPlayerById(playerId);
         GameRoom gameRoom = this.gameRoomService.getGameRoomById(currentPlayer.getGameRoomId());
-        if (!gameRoom.isGameOver()) {
+        if (!gameRoom.isGameOver() && !gameRoom.isPause()) {
             gameRoom = this.gameRoomService.pauseGame(gameRoom); // check if needed
             if (gameRoom.getCurrentTurnPlayerId().equals(currentPlayer.getId())) {
-                if (this.gameRoomService.checkIfMissAndRecord(currentPlayer.getId(), gameMessage.getTargetFire())) {
-                    GameMessage messageCurrentPlayer = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                            .targetFire(gameMessage.getTargetFire())
-                            .type(MessageType.AFTER_FIRE)
-                            .content("boom")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageCurrentPlayer);
+                if (this.gameRoomService.checkIfMissOrHitAndRecord(currentPlayer.getId(), gameMessage.getTargetFire())) {
 
-                    GameMessage messageEnemyPLayer = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getWaitingPlayer())
-                            .targetFire(gameMessage.getTargetFire())
-                            .type(MessageType.ENEMY_FIRE)
-                            .content("boom")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageEnemyPLayer);
+                    this.sendMessages(gameRoom, MessageType.AFTER_FIRE_HIT, gameMessage.getTargetFire(), "");
 
-                    String destroyedShip = this.gameRoomService.getShipNameIfDestroyed(gameRoom, gameMessage.getTargetFire());
+                    String destroyedShip = this.gameRoomService.setShipFlagAndGetNameIfDestroyed(gameRoom, gameMessage.getTargetFire());
                     if (!Objects.equals(destroyedShip, "")) {
-                        messageCurrentPlayer = GameMessage.builder()
-                                .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                                .targetFire(gameMessage.getTargetFire())
-                                .type(MessageType.DESTROYED_SHIP)
-                                .content("You destroyed enemy's " + destroyedShip.toUpperCase() + "!")
-                                .build();
-                        this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageCurrentPlayer);
 
-                        messageEnemyPLayer = GameMessage.builder()
-                                .currentPlayerId(gameRoom.getWaitingPlayer())
-                                .targetFire(gameMessage.getTargetFire())
-                                .type(MessageType.DESTROYED_SHIP)
-                                .content("Your " + destroyedShip.toUpperCase() + " was destroyed!")
-                                .build();
-                        this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageEnemyPLayer);
+                        this.sendMessages(gameRoom, MessageType.DESTROYED_SHIP, gameMessage.getTargetFire(), destroyedShip);
                     }
                     // check if game over
                     if (this.gameRoomService.checkIfGameOver(currentPlayer.getId())) {
-                        messageCurrentPlayer = GameMessage.builder()
-                                .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                                .targetFire(gameMessage.getTargetFire())
-                                .type(MessageType.GAME_OVER)
-                                .content("You have won!")
-                                .build();
-                        this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageCurrentPlayer);
 
-                        messageEnemyPLayer = GameMessage.builder()
-                                .currentPlayerId(gameRoom.getWaitingPlayer())
-                                .targetFire(gameMessage.getTargetFire())
-                                .type(MessageType.GAME_OVER)
-                                .content("You have lost!")
-                                .build();
-                        this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageEnemyPLayer);
+                        this.sendMessages(gameRoom, MessageType.GAME_OVER, "", "");
                         return;
                     }
 
                 } else {
-                    GameMessage messageNextTurn = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                            .targetFire(gameMessage.getTargetFire())
-                            .type(MessageType.AFTER_FIRE)
-                            .content("miss")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageNextTurn);
 
-                    GameMessage messageWaitTurn = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getWaitingPlayer())
-                            .targetFire(gameMessage.getTargetFire())
-                            .type(MessageType.ENEMY_FIRE)
-                            .content("miss")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageWaitTurn);
+                    this.sendMessages(gameRoom, MessageType.AFTER_FIRE_MISS, gameMessage.getTargetFire(), "");
                 }
                 gameRoom = this.gameRoomService.nextTurn(gameRoom);
                 gameRoom = this.gameRoomService.restartGame(gameRoom);
 
-                GameMessage messageNextTurn = GameMessage.builder()
-                        .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                        .type(MessageType.YOUR_TURN)
-                        .content("Your Turn!")
-                        .build();
-                this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageNextTurn);
-
-                GameMessage messageWaitTurn = GameMessage.builder()
-                        .currentPlayerId(gameRoom.getWaitingPlayer())
-                        .type(MessageType.ENEMY_TURN)
-                        .content("Wait! Enemy's turn...")
-                        .build();
-                this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageWaitTurn);
+                this.sendMessages(gameRoom, MessageType.NEXT_TURN, "", "");
             }
-        }
-        gameRoom = this.gameRoomService.pauseGame(gameRoom); // check if needed
-        if (gameRoom.getCurrentTurnPlayerId().equals(currentPlayer.getId())) {
-            if (this.gameRoomService.checkIfMissAndRecord(currentPlayer.getId(), gameMessage.getTargetFire())) {
-                GameMessage messageCurrentPlayer = GameMessage.builder()
-                        .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                        .targetFire(gameMessage.getTargetFire())
-                        .type(MessageType.AFTER_FIRE)
-                        .content("boom")
-                        .build();
-                this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageCurrentPlayer);
-
-                GameMessage messageEnemyPLayer = GameMessage.builder()
-                        .currentPlayerId(gameRoom.getWaitingPlayer())
-                        .targetFire(gameMessage.getTargetFire())
-                        .type(MessageType.ENEMY_FIRE)
-                        .content("boom")
-                        .build();
-                this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageEnemyPLayer);
-
-                String destroyedShip = this.gameRoomService.getShipNameIfDestroyed(gameRoom, gameMessage.getTargetFire());
-                if (!Objects.equals(destroyedShip, "")) {
-                    messageCurrentPlayer = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                            .targetFire(gameMessage.getTargetFire())
-                            .type(MessageType.DESTROYED_SHIP)
-                            .content("You destroyed enemy's " + destroyedShip.toUpperCase() + "!")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageCurrentPlayer);
-
-                    messageEnemyPLayer = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getWaitingPlayer())
-                            .targetFire(gameMessage.getTargetFire())
-                            .type(MessageType.DESTROYED_SHIP)
-                            .content("Your " + destroyedShip.toUpperCase() + " was destroyed!")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageEnemyPLayer);
-                }
-                // check if game over
-                if (this.gameRoomService.checkIfGameOver(currentPlayer.getId())) {
-                    messageCurrentPlayer = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                            .targetFire(gameMessage.getTargetFire())
-                            .type(MessageType.GAME_OVER)
-                            .content("You have won!")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageCurrentPlayer);
-
-                    messageEnemyPLayer = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getWaitingPlayer())
-                            .targetFire(gameMessage.getTargetFire())
-                            .type(MessageType.GAME_OVER)
-                            .content("You have lost!")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageEnemyPLayer);
-                    return;
-                }
-
-            } else {
-                GameMessage messageNextTurn = GameMessage.builder()
-                        .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                        .targetFire(gameMessage.getTargetFire())
-                        .type(MessageType.AFTER_FIRE)
-                        .content("miss")
-                        .build();
-                this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageNextTurn);
-
-                GameMessage messageWaitTurn = GameMessage.builder()
-                        .currentPlayerId(gameRoom.getWaitingPlayer())
-                        .targetFire(gameMessage.getTargetFire())
-                        .type(MessageType.ENEMY_FIRE)
-                        .content("miss")
-                        .build();
-                this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageWaitTurn);
-            }
-            gameRoom = this.gameRoomService.nextTurn(gameRoom);
-            gameRoom = this.gameRoomService.restartGame(gameRoom);
-
-            GameMessage messageNextTurn = GameMessage.builder()
-                    .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                    .type(MessageType.YOUR_TURN)
-                    .content("Your Turn!")
-                    .build();
-            this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageNextTurn);
-
-            GameMessage messageWaitTurn = GameMessage.builder()
-                    .currentPlayerId(gameRoom.getWaitingPlayer())
-                    .type(MessageType.ENEMY_TURN)
-                    .content("Wait! Enemy's turn...")
-                    .build();
-            this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageWaitTurn);
         }
     }
 
@@ -249,7 +151,7 @@ public class GameController {
                     .build();
             this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + playerId, message);
             if (gameRoom.isRoomFull()) {
-                Player enemyPlayer = this.playerService.gerPlayerById((currentPlayer.getId().equals(gameRoom.getPlayerOneId()) ? gameRoom.getPlayerTwoId() : gameRoom.getPlayerOneId()));
+                Player enemyPlayer = this.playerService.getPlayerById((currentPlayer.getId().equals(gameRoom.getPlayerOneId()) ? gameRoom.getPlayerTwoId() : gameRoom.getPlayerOneId()));
 
                 if (enemyPlayer != null) {
                     GameMessage enemyMessage = GameMessage.builder()
@@ -263,19 +165,8 @@ public class GameController {
                 // check if both player are ready
                 if (currentPlayer.getPlayerGameStatus().equals(PlayerGameStatusType.READY) && enemyPlayer.getPlayerGameStatus().equals(PlayerGameStatusType.READY)) {
                     gameRoom = this.gameRoomService.startGameNextTurn(gameRoom);
-                    GameMessage messageNextTurn = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getCurrentTurnPlayerId())
-                            .type(MessageType.YOUR_TURN)
-                            .content("Your Turn!")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getCurrentTurnPlayerId(), messageNextTurn);
 
-                    GameMessage messageWaitTurn = GameMessage.builder()
-                            .currentPlayerId(gameRoom.getWaitingPlayer())
-                            .type(MessageType.ENEMY_TURN)
-                            .content("Wait! Enemy's turn...")
-                            .build();
-                    this.simpMessagingTemplate.convertAndSend("/topic/private/game/" + gameRoom.getWaitingPlayer(), messageWaitTurn);
+                    this.sendMessages(gameRoom, MessageType.NEXT_TURN, "", "");
                 }
             }
         }
@@ -285,11 +176,11 @@ public class GameController {
     public void newPlayerGame(@Payload final GameMessage gameMessage, @DestinationVariable String playerId, SimpMessageHeaderAccessor headerAccessor) {
         if (gameMessage.getType() == MessageType.CONNECT) {
             headerAccessor.getSessionAttributes().put("playerId", playerId);
-            Player currentPlayer = this.playerService.gerPlayerById(playerId);
+            Player currentPlayer = this.playerService.getPlayerById(playerId);
             GameRoom gameRoom = this.gameRoomService.getGameRoomOfCurrentPlayer(currentPlayer.getId());
 
             if (gameRoom.isRoomFull()) {
-                Player enemyPlayer = this.playerService.gerPlayerById((currentPlayer.getId().equals(gameRoom.getPlayerOneId()) ? gameRoom.getPlayerTwoId() : gameRoom.getPlayerOneId()));
+                Player enemyPlayer = this.playerService.getPlayerById((currentPlayer.getId().equals(gameRoom.getPlayerOneId()) ? gameRoom.getPlayerTwoId() : gameRoom.getPlayerOneId()));
 
                 GameMessage currentPlayerMessage = GameMessage.builder()
                         .currentPlayerId(currentPlayer.getId())
