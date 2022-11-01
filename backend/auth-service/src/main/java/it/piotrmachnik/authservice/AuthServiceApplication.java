@@ -38,18 +38,22 @@ public class AuthServiceApplication implements CommandLineRunner {
 		}
 
 		//for testing
-		User user = new User("test", encoder.encode("test123"));
-		Set<Role> roles = new HashSet<>();
-		Role userRole = roleRepository.findByName(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-		roles.add(userRole);
-		user.setRoles(roles);
-		userRepository.save(user);
+		if (!this.userRepository.findByUsername("test").isPresent()) {
+			User user = new User("test", encoder.encode("test123"));
+			Set<Role> roles = new HashSet<>();
+			Role userRole = roleRepository.findByName(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+			roles.add(userRole);
+			user.setRoles(roles);
+			userRepository.save(user);
+		}
 
-		user = new User("piotr", encoder.encode("test123"));
-		roles = new HashSet<>();
-		userRole = roleRepository.findByName(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-		roles.add(userRole);
-		user.setRoles(roles);
-		userRepository.save(user);
+		if (!this.userRepository.findByUsername("piotr").isPresent()) {
+			User user = new User("piotr", encoder.encode("test123"));
+			Set<Role> roles = new HashSet<>();
+			Role userRole = roleRepository.findByName(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+			roles.add(userRole);
+			user.setRoles(roles);
+			userRepository.save(user);
+		}
 	}
 }

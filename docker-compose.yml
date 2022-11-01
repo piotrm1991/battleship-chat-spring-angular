@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  mongodb:
+    container_name: mongodb
+    image: "mongo:4.0.2"
+    volumes:
+      - ./data:/data/db/
+    ports:
+      - "27016:27016"
+    command: mongod --port 27016
+  auth-service:
+    restart: always
+    container_name: auth-service
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    links:
+      - mongodb:localhost
+    environment:
+      - "SPRING_PROFILES_ACTIVE=docker"
+  global-chat-service:
+    restart: always
+    container_name: global-chat-service
+    build:
+      context: ./backend/global-chat-service
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    links:
+      - mongodb:localhost
+    environment:
+      - "SPRING_PROFILES_ACTIVE=docker"
+  game-room-service:
+    restart: always
+    container_name: game-room-service
+    build:
+      context: ./backend/game-room-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    links:
+      - mongodb:localhost
+    environment:
+      - "SPRING_PROFILES_ACTIVE=docker"
+
+  battleship-client:
+    container_name: battleship-client
+    build:
+      context: ./frontend/battleship-client
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      - auth-service
+      - game-room-service
+      - global-chat-service
+    ports:
+      - "4200:4200"
+    volumes:
+      - './:/usr/src/app'
