@@ -10,7 +10,7 @@ The game is persistent until both players leave the battleship tab, then they ha
 
 ### Using Shell Scripts
 
-`cd battleship-chat-spring-angular-master`
+`cd battleship-chat-spring-angular-master`/
 `build.sh`
 `docker-compose build`
 `docker-compose up`
