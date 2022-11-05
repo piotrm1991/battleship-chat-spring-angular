@@ -8,4 +8,37 @@ The game is persistent until both players leave the battleship tab, then they ha
 
 ## Run
 
-In order to run this game you have to run `mvn spring-boot:run` for all three modules and then run battleship-client with `ng serve`.
+### Using Shell Scripts
+
+`cd battleship-chat-spring-angular-master`
+`build.sh`
+`docker-compose build`
+`docker-compose up`
+
+Open browser on `http://localhost:4200/`
+
+### Without Shell Script
+
+`cd battleship-chat-spring-angular-master`
+
+1. Build forntend application
+
+`cd frontend/battleship-client`
+`npm install`
+`ng build`
+`cd ../../`
+
+2. Build backend services
+
+`cd backend/auth-service`
+`mvn clean package`
+`cd ../global-chat-service`
+`mvn clean package`
+`cd ../game-room-service`
+`mvn clean package`
+`cd ../../`
+
+3. Build and run docker
+
+`docker-compose build`
+`docker-compose up`
