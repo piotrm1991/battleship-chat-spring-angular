@@ -10,10 +10,10 @@ The game is persistent until both players leave the battleship tab, then they ha
 
 ### Using Shell Scripts
 
-`cd battleship-chat-spring-angular-master`/
-`build.sh`
-`docker-compose build`
-`docker-compose up`
+`cd battleship-chat-spring-angular-master`\
+`build.sh`\
+`docker-compose build`\
+`docker-compose up`\
 
 Open browser on `http://localhost:4200/`
 
@@ -23,22 +23,22 @@ Open browser on `http://localhost:4200/`
 
 1. Build forntend application
 
-`cd frontend/battleship-client`
-`npm install`
-`ng build`
-`cd ../../`
+`cd frontend/battleship-client`\
+`npm install`\
+`ng build`\
+`cd ../../`\
 
 2. Build backend services
 
-`cd backend/auth-service`
-`mvn clean package`
-`cd ../global-chat-service`
-`mvn clean package`
-`cd ../game-room-service`
-`mvn clean package`
+`cd backend/auth-service`\
+`mvn clean package`\
+`cd ../global-chat-service`\
+`mvn clean package`\
+`cd ../game-room-service`\
+`mvn clean package`\
 `cd ../../`
 
 3. Build and run docker
 
-`docker-compose build`
+`docker-compose build`\
 `docker-compose up`
