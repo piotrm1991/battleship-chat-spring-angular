@@ -13,7 +13,7 @@ The game is persistent until both players leave the battleship tab, then they ha
 `cd battleship-chat-spring-angular-master`\
 `build.sh`\
 `docker-compose build`\
-`docker-compose up`\
+`docker-compose up`
 
 Open browser on `http://localhost:4200/`
 
@@ -26,7 +26,7 @@ Open browser on `http://localhost:4200/`
 `cd frontend/battleship-client`\
 `npm install`\
 `ng build`\
-`cd ../../`\
+`cd ../../`
 
 2. Build backend services
 
